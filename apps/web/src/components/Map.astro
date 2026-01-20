@@ -1,0 +1,262 @@
+---
+// ============================================
+// COMPOSANT : MAP (MAPBOX GL JS - TOKEN FIX)
+// ============================================
+
+// Types locaux
+interface Coords {
+  lat: number;
+  lng: number;
+}
+
+interface Country {
+  id: string;
+  name: string;
+  code: string;
+  coords: Coords;
+  description: string;
+  riskLevel: 'high' | 'critical' | 'extreme';
+  journalistCount?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+interface Props {
+  countries: Country[];
+  totalJournalists: number;
+}
+
+const { countries, totalJournalists } = Astro.props;
+
+// ✅ CRUCIAL : Récupérer le token depuis les variables d'env
+const mapboxToken = import.meta.env.PUBLIC_MAPBOX_TOKEN;
+
+if (!mapboxToken) {
+  console.warn('⚠️ PUBLIC_MAPBOX_TOKEN n\'est pas défini');
+}
+
+// Convertir en JSON pour le client
+const countriesJSON = JSON.stringify(countries);
+---
+
+<div class="map-container">
+  <!-- Conteneur pour Mapbox -->
+  <div id="map" class="map"></div>
+
+  <!-- Statistiques -->
+  <div class="map-stats">
+    <div class="stat">
+      <span class="label">Journalistes</span>
+      <span class="value">{totalJournalists}</span>
+    </div>
+    <div class="stat">
+      <span class="label">Pays</span>
+      <span class="value">{countries.length}</span>
+    </div>
+  </div>
+</div>
+
+<!-- Charger Mapbox GL JS depuis CDN -->
+<link
+  href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
+  rel="stylesheet"
+/>
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
+<style>
+  .map-container {
+    position: relative;
+    width: 33.333%;
+    height: 100%;
+    background-color: #141414;
+  }
+
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+
+  .map-stats {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    gap: 15px;
+    z-index: 10;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 15px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    border: 1px solid #c4a77d;
+  }
+
+  .label {
+    font-size: 0.75rem;
+    color: #8a8a85;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .value {
+    font-size: 1.5rem;
+    color: #c4a77d;
+    font-weight: bold;
+  }
+
+  /* Styles Mapbox personnalisés */
+  :global(.mapboxgl-ctrl-attribution) {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    color: #8a8a85 !important;
+  }
+
+  :global(.mapboxgl-ctrl-attribution a) {
+    color: #c4a77d !important;
+  }
+
+  :global(.mapboxgl-ctrl-group button) {
+    background-color: #141414 !important;
+    border: 1px solid #c4a77d !important;
+  }
+
+  :global(.mapboxgl-ctrl-group button:hover) {
+    background-color: #c4a77d !important;
+    color: #0a0a0a !important;
+  }
+
+  :global(.mapboxgl-popup-content) {
+    background-color: #141414 !important;
+    border: 1px solid #c4a77d !important;
+    color: #f5f5f0 !important;
+  }
+
+  :global(.mapboxgl-popup-close-button) {
+    color: #c4a77d !important;
+  }
+
+  :global(.mapboxgl-popup-tip) {
+    border-top-color: #c4a77d !important;
+  }
+</style>
+
+<!-- ✅ CRUCIAL : Passer le token en variable define: -->
+<script define:vars={{ countriesJSON, mapboxToken }}>
+  // ============================================
+  // LOGIQUE MAPBOX (exécutée côté client)
+  // ============================================
+
+  // Parser les données
+  const countries = JSON.parse(countriesJSON);
+
+  // ✅ Le token vient de define:vars (côté serveur)
+  console.log('🔑 Token Mapbox disponible :', !!mapboxToken);
+
+  if (!mapboxToken) {
+    console.error(
+      '❌ Token Mapbox manquant. Ajoute PUBLIC_MAPBOX_TOKEN dans .env.local'
+    );
+    document.getElementById('map').innerHTML =
+      '<div style="color: red; padding: 20px;">❌ Token Mapbox manquant</div>';
+    throw new Error('Mapbox token required');
+  }
+
+  // Attendre que le DOM soit chargé
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMap);
+  } else {
+    initMap();
+  }
+
+  function initMap() {
+    // Vérifier que mapboxgl est disponible
+    if (typeof mapboxgl === 'undefined') {
+      console.error('❌ Mapbox GL JS non chargé');
+      return;
+    }
+
+    // ✅ Définir le token AVANT de créer la carte
+    mapboxgl.accessToken = mapboxToken;
+
+    console.log('🗺️ Initialisation de la carte Mapbox...');
+
+    try {
+      // Créer la carte
+      const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [-5, 5],
+        zoom: 3,
+        attributionControl: true,
+      });
+
+      // Attendre que la carte soit chargée
+      map.on('load', function() {
+        console.log('✅ Carte Mapbox chargée');
+
+        // ============================================
+        // AJOUTER LES MARQUEURS
+        // ============================================
+
+        countries.forEach(country => {
+          // Couleur du marqueur selon risque
+          const riskColors = {
+            high: '#c4a77d',
+            critical: '#d4845f',
+            extreme: '#a65d57',
+          };
+
+          const color = riskColors[country.riskLevel] || '#c4a77d';
+
+          // Créer l'élément du marqueur
+          const el = document.createElement('div');
+          el.style.cssText = `
+            width: 40px;
+            height: 40px;
+            background-color: ${color};
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+          `;
+          el.textContent = country.journalistCount || 0;
+
+          // Créer le popup
+          const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+            <div style="text-align: center; min-width: 150px;">
+              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold;">
+                ${country.name}
+              </h3>
+              <p style="margin: 4px 0; font-size: 12px; color: #c4a77d;">
+                ${country.journalistCount} journaliste(s)
+              </p>
+              <p style="margin: 4px 0; font-size: 11px; color: #8a8a85;">
+                Risque: ${country.riskLevel}
+              </p>
+            </div>
+          `);
+
+          // Ajouter le marqueur à la carte
+          new mapboxgl.Marker({ element: el })
+            .setLngLat([country.coords.lng, country.coords.lat])
+            .setPopup(popup)
+            .addTo(map);
+        });
+
+        console.log('✅ Carte Mapbox initialisée avec', countries.length, 'pays');
+      });
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'initialisation de la carte :', error);
+    }
+  }
+</script>

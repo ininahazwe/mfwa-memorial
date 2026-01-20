@@ -1,0 +1,103 @@
+/* Polices Google */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+
+  :root {
+    --font-serif: 'Cormorant Garamond', serif;
+    --font-sans: 'DM Sans', sans-serif;
+    /* ... */
+  }
+
+  body {
+    @apply bg-deep text-primary font-body antialiased;
+  }
+  
+  ::selection {
+    @apply bg-accent/30;
+  }
+  
+  /* Scrollbar fine et élégante */
+  ::-webkit-scrollbar {
+    @apply w-1;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-accent-dim rounded-full;
+  }
+}
+
+@layer components {
+  /* Carte portrait avec effets hover */
+  .portrait-card {
+    @apply relative overflow-hidden bg-card cursor-pointer;
+    @apply transition-transform duration-500 ease-out;
+  }
+  
+  .portrait-card::before {
+    content: '';
+    @apply absolute inset-0 border border-border z-10;
+    @apply transition-colors duration-300;
+  }
+  
+  .portrait-card:hover::before {
+    @apply border-accent;
+  }
+  
+  .portrait-card:hover {
+    @apply -translate-y-1.5;
+  }
+  
+  .portrait-card img {
+    @apply w-full h-full object-cover grayscale;
+    @apply transition-all duration-500;
+  }
+  
+  .portrait-card:hover img {
+    @apply grayscale-0 scale-105;
+  }
+  
+  /* Info au survol */
+  .portrait-info {
+    @apply absolute bottom-0 left-0 right-0 p-4 pt-8 z-20;
+    @apply bg-gradient-to-t from-deep/95 to-transparent;
+    @apply translate-y-4 opacity-0 transition-all duration-300;
+  }
+  
+  .portrait-card:hover .portrait-info {
+    @apply translate-y-0 opacity-100;
+  }
+}
+
+/* Animation fadeIn pour les cartes */
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(15px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+/* Styles Mapbox personnalisés */
+.mapboxgl-popup-content {
+  background: #141414 !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 6px !important;
+  padding: 0 !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: #141414 !important;
+}

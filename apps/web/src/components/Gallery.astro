@@ -1,0 +1,278 @@
+---
+// Galerie de portraits avec :
+// - Grille 3×3 (9 portraits visibles)
+// - Rotation automatique toutes les 4 secondes
+// - Filtrage par pays (via window.setCountryFilter / clearCountryFilter)
+
+interface Journalist {
+  id: string;
+  name: string;
+  countryId: string;
+  countryName?: string;
+  role: string;
+  yearOfDeath: number;
+  photoUrl: string;
+}
+
+interface Props {
+  journalists: Journalist[];
+}
+
+const { journalists } = Astro.props;
+---
+
+<section class="w-2/3 h-screen overflow-hidden p-6 pt-20 flex flex-col">
+  
+  <!-- En-tête -->
+  <div class="mb-6 pb-5 border-b border-border flex-shrink-0">
+    <h1 class="font-display text-4xl font-light leading-tight mb-2">
+      Ceux qui ont osé<br />
+      <em class="italic text-accent">dire la vérité</em>
+    </h1>
+    <p class="text-sm text-muted max-w-lg leading-relaxed">
+      Leurs plumes se sont tues, mais leurs mots résonnent encore. 
+      Cette galerie rend hommage aux journalistes qui ont sacrifié leur vie pour informer.
+    </p>
+  </div>
+  
+  <!-- Indicateur de filtre actif (caché par défaut) -->
+  <div 
+    id="filterIndicator" 
+    class="hidden items-center gap-3 mb-4 px-4 py-2 bg-accent-dim border border-accent rounded text-sm"
+  >
+    <span class="text-primary">
+      Filtre : <strong id="filterCountryName" class="text-accent"></strong>
+    </span>
+    <button 
+      id="clearFilter" 
+      class="text-accent hover:text-primary transition-colors text-lg leading-none"
+      title="Effacer le filtre"
+    >
+      ✕
+    </button>
+  </div>
+  
+  <!-- Grille 3×3 -->
+  <div 
+    id="galleryGrid" 
+    class="grid grid-cols-3 grid-rows-3 gap-4 flex-1 min-h-0"
+  >
+    <!-- Les portraits seront injectés par JavaScript -->
+  </div>
+  
+</section>
+
+<script define:vars={{ allJournalists: journalists }}>
+  // ============================================
+  // STATE
+  // ============================================
+  
+  let currentFilter = null;           // ID du pays filtré (null = tous)
+  let displayedJournalists = [];      // 9 journalistes actuellement affichés
+  let rotationInterval = null;        // Intervalle de rotation
+  
+  // ============================================
+  // DOM ELEMENTS
+  // ============================================
+  
+  const grid = document.getElementById('galleryGrid');
+  const filterIndicator = document.getElementById('filterIndicator');
+  const filterCountryName = document.getElementById('filterCountryName');
+  const clearFilterBtn = document.getElementById('clearFilter');
+  
+  // ============================================
+  // UTILS
+  // ============================================
+  
+  // Mélanger un tableau (Fisher-Yates)
+  function shuffle(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+  
+  // Obtenir les journalistes filtrés
+  function getFiltered() {
+    if (currentFilter) {
+      return allJournalists.filter(j => j.countryId === currentFilter);
+    }
+    return [...allJournalists];
+  }
+  
+  // ============================================
+  // CARD CREATION
+  // ============================================
+  
+  function createCard(journalist, index = 0) {
+    const card = document.createElement('article');
+    card.className = 'portrait-card animate-fade-in';
+    card.style.cssText = `animation-delay: ${index * 0.1}s; opacity: 0;`;
+    card.dataset.journalistId = journalist.id;
+    card.dataset.countryId = journalist.countryId;
+    
+    card.innerHTML = `
+      <img 
+        src="${journalist.photoUrl}" 
+        alt="Portrait de ${journalist.name}" 
+        loading="lazy"
+        decoding="async"
+        class="w-full h-full object-cover"
+      />
+      <span class="portrait-date">†${journalist.yearOfDeath}</span>
+      <div class="portrait-info">
+        <h3 class="font-display text-lg font-normal mb-0.5 text-primary">
+          ${journalist.name}
+        </h3>
+        <p class="text-xs text-muted uppercase tracking-wider">
+          <span class="text-accent">${journalist.countryName || ''}</span> • ${journalist.role}
+        </p>
+      </div>
+    `;
+    
+    return card;
+  }
+  
+  // ============================================
+  // GALLERY MANAGEMENT
+  // ============================================
+  
+  // Initialiser/réinitialiser la galerie
+  function initGallery() {
+    const filtered = getFiltered();
+    const shuffled = shuffle(filtered);
+    
+    // Prendre les 9 premiers (ou moins si filtré)
+    displayedJournalists = shuffled.slice(0, 9);
+    
+    // Vider et remplir la grille
+    grid.innerHTML = '';
+    displayedJournalists.forEach((journalist, index) => {
+      grid.appendChild(createCard(journalist, index));
+    });
+  }
+  
+  // Remplacer un portrait aléatoire
+  function rotatePortrait() {
+    const filtered = getFiltered();
+    
+    // Pas de rotation si 9 ou moins
+    if (filtered.length <= 9) return;
+    
+    const cards = grid.querySelectorAll('.portrait-card');
+    if (cards.length === 0) return;
+    
+    // Choisir un slot aléatoire
+    const slotIndex = Math.floor(Math.random() * Math.min(9, cards.length));
+    const card = cards[slotIndex];
+    
+    // Trouver un journaliste non affiché
+    const displayedIds = displayedJournalists.map(j => j.id);
+    const available = filtered.filter(j => !displayedIds.includes(j.id));
+    
+    if (available.length === 0) return;
+    
+    // Choisir aléatoirement
+    const newJournalist = available[Math.floor(Math.random() * available.length)];
+    
+    // Animation de sortie
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.95)';
+    
+    // Après l'animation, remplacer
+    setTimeout(() => {
+      displayedJournalists[slotIndex] = newJournalist;
+      const newCard = createCard(newJournalist);
+      card.replaceWith(newCard);
+    }, 500);
+  }
+  
+  // ============================================
+  // ROTATION CONTROL
+  // ============================================
+  
+  function startRotation() {
+    stopRotation();
+    const filtered = getFiltered();
+    
+    // Rotation seulement si plus de 9 journalistes
+    if (filtered.length > 9) {
+      rotationInterval = setInterval(rotatePortrait, 4000);
+    }
+  }
+  
+  function stopRotation() {
+    if (rotationInterval) {
+      clearInterval(rotationInterval);
+      rotationInterval = null;
+    }
+  }
+  
+  // ============================================
+  // FILTER API (appelée par le composant Map)
+  // ============================================
+  
+  // Filtrer par pays
+  window.setCountryFilter = function(countryId, countryName) {
+    currentFilter = countryId;
+    
+    // Afficher l'indicateur
+    filterIndicator.classList.remove('hidden');
+    filterIndicator.classList.add('flex');
+    filterCountryName.textContent = countryName;
+    
+    // Rafraîchir
+    initGallery();
+    startRotation();
+  };
+  
+  // Effacer le filtre
+  window.clearCountryFilter = function() {
+    currentFilter = null;
+    
+    // Masquer l'indicateur
+    filterIndicator.classList.add('hidden');
+    filterIndicator.classList.remove('flex');
+    
+    // Rafraîchir
+    initGallery();
+    startRotation();
+  };
+  
+  // ============================================
+  // INITIALIZATION
+  // ============================================
+  
+  // Bouton effacer filtre
+  clearFilterBtn.addEventListener('click', window.clearCountryFilter);
+  
+  // Initialiser la galerie
+  initGallery();
+  
+  // Démarrer la rotation après 2 secondes
+  setTimeout(startRotation, 2000);
+</script>
+
+<style is:global>
+  /* Style pour la date (dupliqué ici pour le JS dynamique) */
+  .portrait-date {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.85rem;
+    color: #c4a77d;
+    background: rgba(10, 10, 10, 0.7);
+    padding: 0.2rem 0.5rem;
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 20;
+  }
+  
+  .portrait-card:hover .portrait-date {
+    opacity: 1;
+  }
+</style>

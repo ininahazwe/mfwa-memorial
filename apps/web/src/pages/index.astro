@@ -1,0 +1,45 @@
+---
+// Page d'accueil principale
+// Assemble : Header + Map (1/3) + Gallery (2/3)
+
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Map from '../components/Map.astro';
+import Gallery from '../components/Gallery.astro';
+import '../styles/global.css';
+
+// ============================================
+// RÉCUPÉRER LES DONNÉES DEPUIS FIREBASE
+// ============================================
+
+import { getAllData } from '../lib/firebase';
+
+// ⚠️ Important : Astro supporte nativement les promises en frontmatter
+// Cette fonction s'exécute côté serveur au build/SSR
+const { journalists, countries, totalJournalists } = await getAllData();
+
+// ============================================
+// FALLBACK : Si Firebase est indisponible
+// ============================================
+// Utilise un message d'erreur pour le debug
+if (journalists.length === 0 && countries.length === 0) {
+  console.warn('⚠️ Aucune donnée récupérée depuis Firebase. Vérifiez :');
+  console.warn('   1. Les variables d\'env (.env.local)');
+  console.warn('   2. La connexion Firebase');
+  console.warn('   3. Les documents dans les collections Firestore');
+}
+---
+
+<Layout title="Mémoire Vive — Hommage aux journalistes disparus">
+  
+  <Header />
+  
+  <main class="flex h-screen">
+    <!-- Carte : 1/3 gauche -->
+    <Map countries={countries} totalJournalists={totalJournalists} />
+    
+    <!-- Galerie : 2/3 droite -->
+    <Gallery journalists={journalists} />
+  </main>
+  
+</Layout>
