@@ -1,8 +1,10 @@
 ---
 // Galerie de portraits avec :
 // - Grille 3×3 (9 portraits visibles)
+// - Carrés (1:1 aspect ratio)
 // - Rotation automatique toutes les 4 secondes
 // - Filtrage par pays (via window.setCountryFilter / clearCountryFilter)
+// ✅ REVENU À L'ORIGINAL : 9 carrés + responsive
 
 interface Journalist {
   id: string;
@@ -21,7 +23,7 @@ interface Props {
 const { journalists } = Astro.props;
 ---
 
-<section class="w-2/3 h-screen overflow-hidden p-6 pt-20 flex flex-col">
+<section class="w-2/3 h-screen overflow-hidden p-6 pt-20 flex flex-col md:w-full md:p-4 sm:p-4">
   
   <!-- En-tête -->
   <div class="mb-6 pb-5 border-b border-border flex-shrink-0">
@@ -52,7 +54,7 @@ const { journalists } = Astro.props;
     </button>
   </div>
   
-  <!-- Grille 3×3 -->
+  <!-- Grille 3×3 de carrés -->
   <div 
     id="galleryGrid" 
     class="grid grid-cols-3 grid-rows-3 gap-4 flex-1 min-h-0"
@@ -107,7 +109,8 @@ const { journalists } = Astro.props;
   // ============================================
   
   function createCard(journalist, index = 0) {
-    const card = document.createElement('article');
+    const card = document.createElement('a');
+    card.href = `/journalists/${journalist.id}`;
     card.className = 'portrait-card animate-fade-in';
     card.style.cssText = `animation-delay: ${index * 0.1}s; opacity: 0;`;
     card.dataset.journalistId = journalist.id;
@@ -235,6 +238,11 @@ const { journalists } = Astro.props;
     // Masquer l'indicateur
     filterIndicator.classList.add('hidden');
     filterIndicator.classList.remove('flex');
+    
+    // Aussi réinitialiser la carte
+    if (window.resetMapFilter) {
+      window.resetMapFilter();
+    }
     
     // Rafraîchir
     initGallery();

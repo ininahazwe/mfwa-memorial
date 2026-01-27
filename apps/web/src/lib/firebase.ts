@@ -9,6 +9,8 @@ import {
   query, 
   where, 
   getDocs,
+  doc,
+  getDoc,
   QueryConstraint
 } from 'firebase/firestore';
 import type { Journalist, Country } from '@memoire-vive/shared/types';
@@ -69,7 +71,51 @@ export async function getPublishedJournalists(): Promise<JournalistResponse[]> {
 }
 
 // ============================================
-// 4. RÉCUPÉRER LES PAYS
+// 4. RÉCUPÉRER UN JOURNALISTE PAR SON ID
+// ============================================
+
+/**
+ * ✅ NOUVEAU : Récupère un journaliste spécifique par son ID
+ */
+export async function getJournalistById(journalistId: string): Promise<JournalistResponse | null> {
+  try {
+    const journalistsRef = collection(db, 'journalists');
+    const q = query(journalistsRef, where('isPublished', '==', true));
+    
+    const snapshot = await getDocs(q);
+    
+    // Cherche le journaliste avec l'ID correspondant
+    const journalistDoc = snapshot.docs.find(doc => doc.id === journalistId);
+    
+    if (!journalistDoc) {
+      console.warn(`⚠️ Journaliste non trouvé: ${journalistId}`);
+      return null;
+    }
+    
+    const data = journalistDoc.data();
+    return {
+      id: journalistDoc.id,
+      name: data.name,
+      countryId: data.countryId,
+      countryName: data.countryName,
+      role: data.role,
+      yearOfDeath: data.yearOfDeath,
+      photoUrl: data.photoUrl,
+      bio: data.bio,
+      placeOfDeath: data.placeOfDeath,
+      circumstances: data.circumstances,
+      isPublished: data.isPublished,
+      createdAt: data.createdAt?.toDate?.() || new Date(),
+      updatedAt: data.updatedAt?.toDate?.() || new Date(),
+    } as JournalistResponse;
+  } catch (error) {
+    console.error(`❌ Erreur lors de la récupération du journaliste ${journalistId}:`, error);
+    return null;
+  }
+}
+
+// ============================================
+// 5. RÉCUPÉRER LES PAYS
 // ============================================
 
 /**
@@ -104,7 +150,7 @@ export async function getCountries(): Promise<CountryResponse[]> {
 }
 
 // ============================================
-// 5. RÉCUPÉRER LES JOURNALISTES D'UN PAYS
+// 6. RÉCUPÉRER LES JOURNALISTES D'UN PAYS
 // ============================================
 
 /**
@@ -134,7 +180,7 @@ export async function getJournalistsByCountry(countryId: string): Promise<Journa
 }
 
 // ============================================
-// 6. RÉCUPÉRER UN PAYS PAR SON ID
+// 7. RÉCUPÉRER UN PAYS PAR SON ID
 // ============================================
 
 /**
@@ -166,7 +212,7 @@ export async function getCountryById(countryId: string): Promise<CountryResponse
 }
 
 // ============================================
-// 7. RÉCUPÉRER TOUS LES JOURNALISTES ET PAYS
+// 8. RÉCUPÉRER TOUS LES JOURNALISTES ET PAYS
 // (Pour la galerie au chargement initial)
 // ============================================
 
