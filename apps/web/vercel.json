@@ -1,0 +1,13 @@
+{
+  "buildCommand": "npm run build -w apps/web",
+  "outputDirectory": "apps/web/dist",
+  "env": {
+    "PUBLIC_FIREBASE_API_KEY": "AIzaSyAO_yExxbv4hufqWIRXvDub7vr3tYPnlWI",
+    "PUBLIC_FIREBASE_AUTH_DOMAIN": "memorial-43fcc.firebaseapp.com",
+    "PUBLIC_FIREBASE_PROJECT_ID": "memorial-43fcc",
+    "PUBLIC_FIREBASE_STORAGE_BUCKET": "memorial-43fcc.appspot.com",
+    "PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "memorial-43fcc.firebasestorage.app",
+    "PUBLIC_FIREBASE_APP_ID": "1:799204937708:web:1d39f29f9584047e267ac9",
+    "PUBLIC_MAPBOX_TOKEN": "pk.eyJ1Ijoic2hhcml0dm1hZyIsImEiOiJjbWttbGxiMWowYWRlM2dxdDdkdXBwbGhwIn0.aUH3VNJSV58UAGe35yDneA"
+  }
+}
