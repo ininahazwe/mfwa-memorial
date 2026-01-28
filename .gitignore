@@ -1,181 +1,29 @@
-# ============================================
-# GITIGNORE - Mémoire Vive Project
-# ============================================
-
-# ============================================
-# NODE & NPM
-# ============================================
+# Crée le fichier .gitignore à la racine
+cat > .gitignore << 'EOF'
+# Node & NPM
 node_modules/
-npm-debug.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 .npm
-.eslintcache
 
-# ============================================
-# BUILD & DIST
-# ============================================
+# Build
 dist/
 build/
-*.tsbuildinfo
-.turbo/
 
-# ============================================
-# ASTRO
-# ============================================
-# astro.log
-
-# ============================================
-# VITE
-# ============================================
-.vite/
-
-# ============================================
-# ENVIRONMENT VARIABLES (TRÈS IMPORTANT)
-# ============================================
+# Environment
 .env
 .env.local
-.env.*.local
-.env.production.local
-.env.development.local
-
-# Variables d'env sensibles
 serviceAccountKey.json
 
-# ============================================
-# IDE & EDITOR
-# ============================================
+# IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
-.DS_Store
-Thumbs.db
-*.sublime-workspace
-*.sublime-project
-.project
-.classpath
-*.c9/
-*.iml
-*.iws
-*.ipr
-.settings/
 
-# ============================================
 # OS
-# ============================================
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-desktop.ini
-
-# ============================================
-# FIREBASE
-# ============================================
-# serviceAccountKey.json (déjà en haut)
-.firebaserc
-
-# ============================================
-# TESTING
-# ============================================
-coverage/
-.nyc_output/
-*.lcov
-
-# ============================================
-# LOGS
-# ============================================
-logs
-*.log
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# ============================================
-# TEMP FILES
-# ============================================
-tmp/
-temp/
-*.tmp
-*.bak
-*.swp
-*~
-
-# ============================================
-# WINDOWS
-# ============================================
 Thumbs.db
-ehthumbs.db
-Desktop.ini
 
-# ============================================
-# MACOS
-# ============================================
-.AppleDouble
-.LSOverride
-.TemporaryItems
-.apdisk
-
-# ============================================
-# LINUX
-# ============================================
-.directory
-
-# ============================================
-# PACKAGE MANAGER LOCKS (optionnel - garder pour cohérence)
-# ============================================
-# package-lock.json  (GARDER - à commiter)
-# yarn.lock          (GARDER - à commiter)
-# pnpm-lock.yaml     (GARDER - à commiter)
-
-# ============================================
-# IDE SPECIFIC (VSCode)
-# ============================================
-.vscode/
-.vscode-test/
-.history/
-*.vsix
-
-# ============================================
-# YARN
-# ============================================
-.yarn/cache/
-.yarn/unplugged/
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
-
-# ============================================
-# PROJECT SPECIFIC
-# ============================================
-# Fichiers de déploiement
-dist/
-.vercel/
-.netlify/
-
-# Scripts de test/import
-firebaseImport.log
-firebaseTest.log
-
-# Fichiers temporaires du projet
-*.local
-.cache/
-
-# ============================================
-# TURBO (si utilisé)
-# ============================================
-.turbo/
-
-# ============================================
-# DIST ET BUILD POUR CHAQUE APP
-# ============================================
+# App specific
 apps/web/dist/
 apps/web/.astro/
 apps/admin/dist/
-apps/admin/build/
+EOF
