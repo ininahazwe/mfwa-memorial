@@ -4,7 +4,7 @@
 // ============================================
 // Dynamic route : /journalists/[id]
 
-import Layout from '../../layouts/Layout.astro';
+import Layout from '../../layouts/LayoutDefault.astro';
 import { getJournalistById, getJournalistsByCountry } from '../../lib/firebase';
 
 // Récupérer l'ID du journaliste depuis l'URL
@@ -34,7 +34,7 @@ const otherJournalists = countryJournalists.filter(j => j.id !== journalist.id);
     <header class="sticky top-0 z-50 bg-gradient-to-b from-deep to-transparent px-6 py-5">
       <a href="/" class="inline-flex items-center gap-2 text-accent hover:text-primary transition-colors">
         <span>←</span>
-        <span class="font-display text-sm tracking-widest uppercase">Retour</span>
+        <span class="font-display text-sm tracking-widest uppercase">Back</span>
       </a>
     </header>
 
@@ -74,7 +74,7 @@ const otherJournalists = countryJournalists.filter(j => j.id !== journalist.id);
           <div class="space-y-4">
             {journalist.placeOfDeath && (
               <div>
-                <p class="text-xs text-muted uppercase tracking-wider mb-1">Lieu</p>
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">Location</p>
                 <p class="text-primary">{journalist.placeOfDeath}</p>
               </div>
             )}
@@ -93,7 +93,7 @@ const otherJournalists = countryJournalists.filter(j => j.id !== journalist.id);
               onclick="navigator.share({title: '${journalist.name}', url: window.location.href})"
               class="text-sm text-accent hover:text-primary transition-colors uppercase tracking-wider"
             >
-              Partager
+              Share
             </button>
           </div>
         </div>
@@ -103,7 +103,7 @@ const otherJournalists = countryJournalists.filter(j => j.id !== journalist.id);
       {journalist.bio && (
         <section class="mb-16 pb-16 border-b border-border">
           <h2 class="font-display text-3xl font-light mb-6">
-            Biographie
+            Biography
           </h2>
           <p class="text-base leading-relaxed text-primary/90 max-w-2xl">
             {journalist.bio}
@@ -115,7 +115,7 @@ const otherJournalists = countryJournalists.filter(j => j.id !== journalist.id);
       {otherJournalists.length > 0 && (
         <section>
           <h2 class="font-display text-3xl font-light mb-8">
-            Autres journalistes de {journalist.countryName}
+            Other victims from {journalist.countryName}
           </h2>
           
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
