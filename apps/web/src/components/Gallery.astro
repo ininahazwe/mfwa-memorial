@@ -1,10 +1,9 @@
 ---
 // Galerie de portraits avec :
 // - Grille 3×3 (9 portraits visibles)
-// - Carrés (1:1 aspect ratio)
+// - Carrés parfaits (aspect-ratio 1:1)
 // - Rotation automatique toutes les 4 secondes
 // - Filtrage par pays (via window.setCountryFilter / clearCountryFilter)
-// ✅ REVENU À L'ORIGINAL : 9 carrés + responsive
 
 interface Journalist {
   id: string;
@@ -23,41 +22,50 @@ interface Props {
 const { journalists } = Astro.props;
 ---
 
-<section class="w-2/3 h-screen overflow-hidden p-6 pt-20 flex flex-col md:w-full md:p-4 sm:p-4">
-  
-  <!-- En-tête -->
-  <div class="mb-6 pb-5 border-b border-border flex-shrink-0">
-    <h1 class="font-display text-4xl font-light leading-tight mb-2">
-      Ceux qui ont osé<br />
-      <em class="italic text-accent">dire la vérité</em>
+<!-- GALERIE : 2/3 à droite avec padding optimisé pour grille 3×3 -->
+<section class="w-2/3 h-screen overflow-y-auto p-6 pt-20 flex flex-col md:w-full md:p-4 sm:p-4 relative">
+
+  <!-- En-tête avec titre et description -->
+  <div class="mb-6 pb-4 flex flex-col">
+    <!-- Titre principal - Style impactant mais pas trop gros -->
+    <h1 class="font-display-bold text-3xl font-black text-dark mb-2" style="letter-spacing: -0.02em; z-index: 99;">
+      Those who dared
     </h1>
-    <p class="text-sm text-muted max-w-lg leading-relaxed">
-      Leurs plumes se sont tues, mais leurs mots résonnent encore. 
-      Cette galerie rend hommage aux journalistes qui ont sacrifié leur vie pour informer.
+    <!-- Sous-titre avec accent doré -->
+    <p class="font-serif text-xl font-light text-dark mb-3">
+      <em class="italic text-accent">to speak the truth</em>
+    </p>
+    <!-- Description -->
+    <p class="text-sm leading-relaxed max-w-2xl" style="color: #646460;">
+      Their pens have fallen silent, but their words still resonate. <br />
+      This gallery pays tribute to journalists who sacrificed their lives to inform the public.
     </p>
   </div>
   
   <!-- Indicateur de filtre actif (caché par défaut) -->
   <div 
     id="filterIndicator" 
-    class="hidden items-center gap-3 mb-4 px-4 py-2 bg-accent-dim border border-accent rounded text-sm"
+    class="hidden items-center gap-3 mb-4 px-4 py-2 bg-white text-sm"
+    style="border: 0.0625vw solid #e8e8e8; border-radius: 2.1875vw;"
   >
-    <span class="text-primary">
-      Filtre : <strong id="filterCountryName" class="text-accent"></strong>
+    <span style="color: #1e1e1e;">
+      Filtre : <strong id="filterCountryName" style="color: #c4a77d;"></strong>
     </span>
     <button 
       id="clearFilter" 
-      class="text-accent hover:text-primary transition-colors text-lg leading-none"
+      class="text-lg leading-none transition-colors"
+      style="color: #c4a77d;"
       title="Effacer le filtre"
     >
       ✕
     </button>
   </div>
   
-  <!-- Grille 3×3 de carrés -->
+  <!-- Grille 4×3 de carrés PARFAITS -->
   <div 
     id="galleryGrid" 
-    class="grid grid-cols-3 grid-rows-3 gap-4 flex-1 min-h-0"
+    class="grid flex-1 gap-4 min-h-0 overflow-y-auto"
+    style="grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap: 10px;"
   >
     <!-- Les portraits seront injectés par JavaScript -->
   </div>
@@ -69,9 +77,9 @@ const { journalists } = Astro.props;
   // STATE
   // ============================================
   
-  let currentFilter = null;           // ID du pays filtré (null = tous)
-  let displayedJournalists = [];      // 9 journalistes actuellement affichés
-  let rotationInterval = null;        // Intervalle de rotation
+  let currentFilter = null;
+  let displayedJournalists = [];
+  let rotationInterval = null;
   
   // ============================================
   // DOM ELEMENTS
@@ -126,10 +134,10 @@ const { journalists } = Astro.props;
       />
       <span class="portrait-date">†${journalist.yearOfDeath}</span>
       <div class="portrait-info">
-        <h3 class="font-display text-lg font-normal mb-0.5 text-primary">
+        <h3 class="font-serif text-lg font-normal mb-0.5 text-white">
           ${journalist.name}
         </h3>
-        <p class="text-xs text-muted uppercase tracking-wider">
+        <p class="text-xs text-gray-200 uppercase tracking-wider">
           <span class="text-accent">${journalist.countryName || ''}</span> • ${journalist.role}
         </p>
       </div>
@@ -142,49 +150,39 @@ const { journalists } = Astro.props;
   // GALLERY MANAGEMENT
   // ============================================
   
-  // Initialiser/réinitialiser la galerie
   function initGallery() {
     const filtered = getFiltered();
     const shuffled = shuffle(filtered);
     
-    // Prendre les 9 premiers (ou moins si filtré)
-    displayedJournalists = shuffled.slice(0, 9);
+    displayedJournalists = shuffled.slice(0, 15);
     
-    // Vider et remplir la grille
     grid.innerHTML = '';
     displayedJournalists.forEach((journalist, index) => {
       grid.appendChild(createCard(journalist, index));
     });
   }
   
-  // Remplacer un portrait aléatoire
   function rotatePortrait() {
     const filtered = getFiltered();
     
-    // Pas de rotation si 9 ou moins
     if (filtered.length <= 9) return;
     
     const cards = grid.querySelectorAll('.portrait-card');
     if (cards.length === 0) return;
     
-    // Choisir un slot aléatoire
     const slotIndex = Math.floor(Math.random() * Math.min(9, cards.length));
     const card = cards[slotIndex];
     
-    // Trouver un journaliste non affiché
     const displayedIds = displayedJournalists.map(j => j.id);
     const available = filtered.filter(j => !displayedIds.includes(j.id));
     
     if (available.length === 0) return;
     
-    // Choisir aléatoirement
     const newJournalist = available[Math.floor(Math.random() * available.length)];
     
-    // Animation de sortie
     card.style.opacity = '0';
     card.style.transform = 'scale(0.95)';
     
-    // Après l'animation, remplacer
     setTimeout(() => {
       displayedJournalists[slotIndex] = newJournalist;
       const newCard = createCard(newJournalist);
@@ -200,7 +198,6 @@ const { journalists } = Astro.props;
     stopRotation();
     const filtered = getFiltered();
     
-    // Rotation seulement si plus de 9 journalistes
     if (filtered.length > 9) {
       rotationInterval = setInterval(rotatePortrait, 4000);
     }
@@ -214,37 +211,30 @@ const { journalists } = Astro.props;
   }
   
   // ============================================
-  // FILTER API (appelée par le composant Map)
+  // FILTER API
   // ============================================
   
-  // Filtrer par pays
   window.setCountryFilter = function(countryId, countryName) {
     currentFilter = countryId;
     
-    // Afficher l'indicateur
     filterIndicator.classList.remove('hidden');
     filterIndicator.classList.add('flex');
     filterCountryName.textContent = countryName;
     
-    // Rafraîchir
     initGallery();
     startRotation();
   };
   
-  // Effacer le filtre
   window.clearCountryFilter = function() {
     currentFilter = null;
     
-    // Masquer l'indicateur
     filterIndicator.classList.add('hidden');
     filterIndicator.classList.remove('flex');
     
-    // Aussi réinitialiser la carte
     if (window.resetMapFilter) {
       window.resetMapFilter();
     }
     
-    // Rafraîchir
     initGallery();
     startRotation();
   };
@@ -253,18 +243,14 @@ const { journalists } = Astro.props;
   // INITIALIZATION
   // ============================================
   
-  // Bouton effacer filtre
   clearFilterBtn.addEventListener('click', window.clearCountryFilter);
   
-  // Initialiser la galerie
   initGallery();
   
-  // Démarrer la rotation après 2 secondes
   setTimeout(startRotation, 2000);
 </script>
 
 <style is:global>
-  /* Style pour la date (dupliqué ici pour le JS dynamique) */
   .portrait-date {
     position: absolute;
     top: 0.75rem;
@@ -272,7 +258,7 @@ const { journalists } = Astro.props;
     font-family: 'Cormorant Garamond', serif;
     font-size: 0.85rem;
     color: #c4a77d;
-    background: rgba(10, 10, 10, 0.7);
+    background: rgba(30, 30, 30, 0.7);
     padding: 0.2rem 0.5rem;
     border-radius: 2px;
     opacity: 0;

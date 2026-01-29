@@ -40,10 +40,10 @@ const { journalist, index = 0 } = Astro.props;
   
   <!-- Informations (apparaît au hover) -->
   <div class="portrait-info">
-    <h3 class="font-display text-lg font-normal mb-0.5 text-primary">
+    <h3 class="font-serif text-lg font-normal mb-0.5 text-white">
       {journalist.name}
     </h3>
-    <p class="text-xs text-muted uppercase tracking-wider">
+    <p class="text-xs text-gray-200 uppercase tracking-wider">
       <span class="text-accent">{journalist.countryName}</span> • {journalist.role}
     </p>
   </div>
@@ -58,7 +58,7 @@ const { journalist, index = 0 } = Astro.props;
     font-family: 'Cormorant Garamond', serif;
     font-size: 0.85rem;
     color: #c4a77d;
-    background: rgba(10, 10, 10, 0.7);
+    background: rgba(30, 30, 30, 0.7);
     padding: 0.2rem 0.5rem;
     border-radius: 2px;
     opacity: 0;

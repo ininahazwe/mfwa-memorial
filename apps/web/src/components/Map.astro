@@ -44,12 +44,12 @@ const countriesJSON = JSON.stringify(countries);
   <!-- Statistiques -->
   <div class="map-stats">
     <div class="stat">
-      <span class="label">Journalistes</span>
       <span class="value">{totalJournalists}</span>
+      <span class="label">Journalists</span>
     </div>
     <div class="stat">
-      <span class="label">Pays</span>
       <span class="value">{countries.length}</span>
+      <span class="label">Countries</span>
     </div>
   </div>
 </div>
@@ -66,7 +66,7 @@ const countriesJSON = JSON.stringify(countries);
     position: relative;
     width: 33.333%;
     height: 100%;
-    background-color: #141414;
+    background-color: #d4d4cc;
   }
 
   #map {
@@ -89,28 +89,28 @@ const countriesJSON = JSON.stringify(countries);
     align-items: center;
     gap: 5px;
     padding: 10px 15px;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(245, 245, 240, 0.95);
     border-radius: 8px;
-    border: 1px solid #c4a77d;
   }
 
   .label {
     font-size: 0.75rem;
-    color: #8a8a85;
+    color: #646460;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-weight: 500;
   }
 
   .value {
     font-size: 1.5rem;
-    color: #c4a77d;
+    color: #212121;
     font-weight: bold;
   }
 
   /* Styles Mapbox personnalisés */
   :global(.mapboxgl-ctrl-attribution) {
-    background-color: rgba(0, 0, 0, 0.7) !important;
-    color: #8a8a85 !important;
+    background-color: rgba(245, 245, 240, 0.9) !important;
+    color: #646460 !important;
   }
 
   :global(.mapboxgl-ctrl-attribution a) {
@@ -118,19 +118,20 @@ const countriesJSON = JSON.stringify(countries);
   }
 
   :global(.mapboxgl-ctrl-group button) {
-    background-color: #141414 !important;
-    border: 1px solid #c4a77d !important;
+    background-color: #f5f5f0 !important;
+    border: 1px solid #d4d4cc !important;
+    color: #1e1e1e !important;
   }
 
   :global(.mapboxgl-ctrl-group button:hover) {
     background-color: #c4a77d !important;
-    color: #0a0a0a !important;
+    color: #f5f5f0 !important;
   }
 
   :global(.mapboxgl-popup-content) {
-    background-color: #141414 !important;
-    border: 1px solid #c4a77d !important;
-    color: #f5f5f0 !important;
+    background-color: #f5f5f0 !important;
+    border: 1px solid #d4d4cc !important;
+    color: #1e1e1e !important;
   }
 
   :global(.mapboxgl-popup-close-button) {
@@ -138,7 +139,7 @@ const countriesJSON = JSON.stringify(countries);
   }
 
   :global(.mapboxgl-popup-tip) {
-    border-top-color: #c4a77d !important;
+    border-top-color: #f5f5f0 !important;
   }
 
   /* Marqueur actif/hover */
@@ -186,9 +187,9 @@ const countriesJSON = JSON.stringify(countries);
     try {
       map = new mapboxgl.Map({
         container: 'map',
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [-5, 5],
-        zoom: 3,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [-2, 18],
+        zoom: 2.5,
         attributionControl: true,
       });
 
@@ -219,7 +220,7 @@ const countriesJSON = JSON.stringify(countries);
             color: white;
             font-size: 14px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
           `;
           el.textContent = country.journalistCount || 0;
 
@@ -243,22 +244,22 @@ const countriesJSON = JSON.stringify(countries);
             el.style.height = '40px';
             el.style.marginTop = '0px';
             el.style.marginLeft = '0px';
-            el.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.5)';
+            el.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)';
             el.style.lineHeight = '40px';
           });
 
           const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-            <div style="text-align: center; min-width: 150px;">
-              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold;">
+            <div style="text-align: center; min-width: 150px; font-family: 'DM Sans', sans-serif;">
+              <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #1e1e1e;">
                 ${country.name}
               </h3>
               <p style="margin: 4px 0; font-size: 12px; color: #c4a77d;">
                 ${country.journalistCount} journaliste(s)
               </p>
-              <p style="margin: 4px 0; font-size: 11px; color: #8a8a85;">
+              <p style="margin: 4px 0; font-size: 11px; color: #646460;">
                 Risque: ${country.riskLevel}
               </p>
-              <p style="margin: 8px 0 0 0; font-size: 10px; color: #8a8a85;">
+              <p style="margin: 8px 0 0 0; font-size: 10px; color: #646460;">
                 Clique pour filtrer
               </p>
             </div>
