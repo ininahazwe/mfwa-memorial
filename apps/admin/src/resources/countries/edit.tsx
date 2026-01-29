@@ -1,12 +1,17 @@
 // ============================================
-// ÉDITION D'UN PAYS
+// ÉDITION D'UN PAYS - VERSION AMÉLIORÉE
 // ============================================
-// Formulaire pré-rempli avec les données existantes
+// Preview coordonnées, validation ISO
+// Location: apps/admin/src/resources/countries/edit.tsx
 
 import { Edit, useForm } from '@refinedev/antd';
-import { Form, Input, Select, InputNumber, Row, Col, Card, Typography } from 'antd';
+import { Form, Input, Select, InputNumber, Row, Col, Card, Alert, Divider, Typography } from 'antd';
 
 const { Text } = Typography;
+
+// ============================================
+// COMPOSANT
+// ============================================
 
 export const CountryEdit = () => {
   const { formProps, saveButtonProps, queryResult } = useForm();
@@ -15,114 +20,218 @@ export const CountryEdit = () => {
   const country = queryResult?.data?.data;
 
   return (
-    <Edit saveButtonProps={saveButtonProps}>
+    <Edit 
+      saveButtonProps={saveButtonProps}
+      title={country?.name ? `Modifier : ${country.name}` : 'Modifier un pays'}
+    >
       <Form {...formProps} layout="vertical">
         
+        <Divider orientation="left">
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#2a2a2a' }}>
+            🌍 Informations générales
+          </span>
+        </Divider>
+
         {/* Informations générales */}
-        <Card title="Informations générales" size="small" style={{ marginBottom: 16 }}>
+        <Card 
+          type="inner"
+          style={{ marginBottom: 16, border: '1px solid #e8dcc8' }}
+        >
           <Row gutter={16}>
             <Col span={16}>
               {/* Nom du pays */}
               <Form.Item
-                label="Nom du pays"
+                label="Nom du pays *"
                 name="name"
-                rules={[{ required: true, message: 'Le nom est requis' }]}
+                rules={[
+                  { required: true, message: '❌ Le nom est requis' },
+                  { min: 2, message: '❌ Au moins 2 caractères' },
+                ]}
               >
-                <Input />
+                <Input size="large" />
               </Form.Item>
             </Col>
             
             <Col span={8}>
               {/* Code ISO */}
               <Form.Item
-                label="Code ISO (2 lettres)"
+                label="Code ISO *"
                 name="code"
                 rules={[
-                  { required: true, message: 'Le code est requis' },
-                  { len: 2, message: 'Exactement 2 lettres' },
+                  { required: true, message: '❌ Le code est requis' },
+                  { 
+                    len: 2, 
+                    message: '❌ Exactement 2 lettres' 
+                  },
+                  {
+                    pattern: /^[A-Z]{2}$/,
+                    message: '❌ Majuscules uniquement',
+                  },
                 ]}
+                tooltip="Code ISO 3166-1 alpha-2"
               >
                 <Input 
                   maxLength={2}
                   style={{ textTransform: 'uppercase' }}
+                  size="large"
                 />
               </Form.Item>
             </Col>
           </Row>
         </Card>
 
+        <Divider orientation="left">
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#2a2a2a' }}>
+            📍 Coordonnées géographiques
+          </span>
+        </Divider>
+
+        {/* Alert info coordonnées */}
+        <Alert
+          message="Modifiez les coordonnées du centre du pays"
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+
         {/* Coordonnées géographiques */}
-        <Card title="Coordonnées (centre du pays)" size="small" style={{ marginBottom: 16 }}>
+        <Card 
+          type="inner"
+          style={{ marginBottom: 16, border: '1px solid #e8dcc8' }}
+        >
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                label="Latitude"
+                label="Latitude *"
                 name={['coords', 'lat']}
-                rules={[{ required: true, message: 'La latitude est requise' }]}
+                rules={[
+                  { required: true, message: '❌ La latitude est requise' },
+                ]}
               >
                 <InputNumber
                   style={{ width: '100%' }}
                   step={0.01}
                   min={-90}
                   max={90}
+                  size="large"
                 />
               </Form.Item>
             </Col>
             
             <Col span={12}>
               <Form.Item
-                label="Longitude"
+                label="Longitude *"
                 name={['coords', 'lng']}
-                rules={[{ required: true, message: 'La longitude est requise' }]}
+                rules={[
+                  { required: true, message: '❌ La longitude est requise' },
+                ]}
               >
                 <InputNumber
                   style={{ width: '100%' }}
                   step={0.01}
                   min={-180}
                   max={180}
+                  size="large"
                 />
               </Form.Item>
             </Col>
           </Row>
           
-          {/* Aperçu des coordonnées actuelles */}
+          {/* Affichage des coordonnées actuelles */}
           {country?.coords && (
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              📍 Position actuelle : {country.coords.lat.toFixed(4)}, {country.coords.lng.toFixed(4)}
-            </Text>
+            <div style={{ 
+              padding: '12px 16px',
+              backgroundColor: '#f5f5f0',
+              borderRadius: 6,
+              border: '1px solid #e8dcc8',
+            }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                📍 Position actuelle : <strong>{country.coords.lat.toFixed(4)}</strong>, <strong>{country.coords.lng.toFixed(4)}</strong>
+              </Text>
+            </div>
           )}
         </Card>
 
+        <Divider orientation="left">
+          <span style={{ fontSize: 14, fontWeight: 600, color: '#2a2a2a' }}>
+            ⚠️ Contexte de la presse
+          </span>
+        </Divider>
+
         {/* Contexte et risque */}
-        <Card title="Contexte presse" size="small">
+        <Card 
+          type="inner"
+          style={{ border: '1px solid #e8dcc8' }}
+        >
           {/* Niveau de risque */}
           <Form.Item
-            label="Niveau de risque"
+            label="Niveau de risque *"
             name="riskLevel"
-            rules={[{ required: true, message: 'Le niveau est requis' }]}
+            rules={[{ required: true, message: '❌ Le niveau est requis' }]}
           >
-            <Select>
-              <Select.Option value="high">
-                🟡 Élevé - Pressions et menaces fréquentes
-              </Select.Option>
-              <Select.Option value="critical">
-                🟠 Critique - Violences régulières, impunité
-              </Select.Option>
-              <Select.Option value="extreme">
-                🔴 Extrême - Zone de conflit, danger mortel
-              </Select.Option>
-            </Select>
+            <Select 
+              size="large"
+              options={[
+                { 
+                  value: 'high',
+                  label: '🟡 Élevé - Pressions et menaces fréquentes',
+                },
+                { 
+                  value: 'critical',
+                  label: '🟠 Critique - Violences régulières, impunité',
+                },
+                { 
+                  value: 'extreme',
+                  label: '🔴 Extrême - Zone de conflit, danger mortel',
+                },
+              ]}
+            />
           </Form.Item>
 
           {/* Description */}
           <Form.Item
-            label="Description du contexte"
+            label="Description du contexte *"
             name="description"
-            rules={[{ required: true, message: 'La description est requise' }]}
+            rules={[
+              { required: true, message: '❌ La description est requise' },
+              { min: 20, message: '❌ Au minimum 20 caractères' },
+            ]}
           >
-            <Input.TextArea rows={4} />
+            <Input.TextArea 
+              rows={4}
+              maxLength={1000}
+              showCount
+              size="large"
+            />
           </Form.Item>
         </Card>
+
+        {/* Dates */}
+        <Divider orientation="left">
+          <span style={{ fontSize: 12, fontWeight: 400, color: '#999' }}>
+            ℹ️ Métadonnées
+          </span>
+        </Divider>
+
+        {country?.createdAt && (
+          <Form.Item label="Créé le">
+            <Input
+              disabled
+              value={new Date(country.createdAt).toLocaleString('fr-FR')}
+              size="large"
+            />
+          </Form.Item>
+        )}
+
+        {country?.updatedAt && (
+          <Form.Item label="Dernière modification">
+            <Input
+              disabled
+              value={new Date(country.updatedAt).toLocaleString('fr-FR')}
+              size="large"
+            />
+          </Form.Item>
+        )}
 
       </Form>
     </Edit>

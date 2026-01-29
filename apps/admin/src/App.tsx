@@ -1,7 +1,8 @@
 // ============================================
-// APPLICATION ADMIN PRINCIPALE
+// APPLICATION ADMIN PRINCIPALE - MÉMOIRE VIVE
 // ============================================
-// Assemble Refine + Ant Design + Firebase + Routes
+// Refine + Ant Design Light Theme + Firebase + Routes
+// Location: apps/admin/src/App.tsx
 
 import { Refine, Authenticated } from '@refinedev/core';
 import { 
@@ -9,7 +10,6 @@ import {
   ThemedSiderV2, 
   useNotificationProvider, 
   ErrorComponent,
-  RefineThemes,
 } from '@refinedev/antd';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import routerBindings, { 
@@ -43,16 +43,103 @@ import '@refinedev/antd/dist/reset.css';
 // ============================================
 
 const SidebarTitle = () => (
-  <div style={{ 
-    padding: '16px', 
-    fontFamily: '"Cormorant Garamond", serif',
-    fontSize: '18px',
-    fontWeight: 300,
-    letterSpacing: '0.05em',
-  }}>
+  <div 
+    style={{ 
+      padding: '20px 16px', 
+      fontFamily: '"Cormorant Garamond", serif',
+      fontSize: '20px',
+      fontWeight: 300,
+      letterSpacing: '0.05em',
+      borderBottom: '1px solid #e8dcc8',
+    }}
+  >
     Mémoire <span style={{ color: '#c4a77d' }}>Vive</span>
+    <div 
+      style={{
+        fontSize: '10px',
+        fontFamily: '"DM Sans", sans-serif',
+        fontWeight: 400,
+        letterSpacing: '0.15em',
+        color: '#999',
+        marginTop: '4px',
+        textTransform: 'uppercase',
+      }}
+    >
+      Admin
+    </div>
   </div>
 );
+
+// ============================================
+// CONFIGURATION LIGHT THEME
+// ============================================
+
+const lightThemeConfig = {
+  algorithm: theme.defaultAlgorithm,
+  token: {
+    // Couleur primaire dorée (accent)
+    colorPrimary: '#c4a77d',
+    
+    // Fonds clairs (light beige)
+    colorBgContainer: '#fefdfb',
+    colorBgElevated: '#ffffff',
+    colorBgLayout: '#f5f5f0',
+    
+    // Texte
+    colorText: '#2a2a2a',
+    colorTextSecondary: '#666666',
+    
+    // Bordures
+    colorBorder: '#e8dcc8',
+    colorBorderSecondary: '#f0ebe0',
+    
+    // Design
+    borderRadius: 8,
+    fontFamily: '"DM Sans", sans-serif',
+    fontSize: 14,
+    
+    // Spacing
+    marginSM: 8,
+    marginMD: 12,
+    marginLG: 16,
+    
+    // Ombre douce
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+  },
+  
+  components: {
+    Button: {
+      primaryColor: '#c4a77d',
+      controlHeight: 36,
+      fontWeight: 500,
+    },
+    Input: {
+      controlHeight: 36,
+      borderRadius: 6,
+    },
+    Select: {
+      controlHeight: 36,
+      borderRadius: 6,
+    },
+    Table: {
+      headerBg: '#f5f5f0',
+      headerColor: '#2a2a2a',
+      borderColor: '#e8dcc8',
+      rowHoverBg: '#fafaf7',
+    },
+    Card: {
+      colorBgContainer: '#ffffff',
+      boxShadow: 'none',
+      borderRadiusSM: 6,
+    },
+    Layout: {
+      colorBgHeader: '#ffffff',
+      colorBgBody: '#f5f5f0',
+      colorBgTrigger: '#e8dcc8',
+      borderColor: '#e8dcc8',
+    },
+  },
+};
 
 // ============================================
 // APPLICATION
@@ -61,24 +148,8 @@ const SidebarTitle = () => (
 const App = () => {
   return (
     <BrowserRouter>
-      {/* Configuration du thème Ant Design (dark) */}
-      <ConfigProvider
-        theme={{
-          algorithm: theme.darkAlgorithm,
-          token: {
-            // Couleur principale (accent doré)
-            colorPrimary: '#c4a77d',
-            // Fonds
-            colorBgContainer: '#141414',
-            colorBgElevated: '#1a1a1a',
-            colorBgLayout: '#0a0a0a',
-            // Bordures arrondies
-            borderRadius: 6,
-            // Police
-            fontFamily: '"DM Sans", sans-serif',
-          },
-        }}
-      >
+      {/* Configuration du thème Ant Design (Light) */}
+      <ConfigProvider theme={lightThemeConfig}>
         <AntdApp>
           <Refine
             // ----------------------------------------
@@ -140,22 +211,30 @@ const App = () => {
                           render={({ items }) => (
                             <>
                               {items}
+                              
                               {/* Lien vers le site public */}
-                              <div style={{ 
-                                padding: '16px',
-                                borderTop: '1px solid rgba(255,255,255,0.06)',
-                                marginTop: 'auto',
-                              }}>
+                              <div 
+                                style={{ 
+                                  padding: '16px',
+                                  borderTop: '1px solid #e8dcc8',
+                                  marginTop: 'auto',
+                                }}
+                              >
                                 <a 
-                                  href="/" 
+                                  href="https://mfwa-memorial.vercel.app/" 
                                   target="_blank"
+                                  rel="noreferrer"
                                   style={{ 
-                                    color: '#8a8a85', 
+                                    color: '#999', 
                                     fontSize: '12px',
                                     textDecoration: 'none',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
                                   }}
                                 >
-                                  ↗ Voir le site public
+                                  <span>↗</span>
+                                  <span>Voir le site public</span>
                                 </a>
                               </div>
                             </>
@@ -171,14 +250,14 @@ const App = () => {
                 {/* Redirection par défaut */}
                 <Route index element={<NavigateToResource resource="journalists" />} />
                 
-                {/* Routes Journalistes */}
+                {/* ====== Routes Journalistes ====== */}
                 <Route path="/journalists">
                   <Route index element={<JournalistList />} />
                   <Route path="create" element={<JournalistCreate />} />
                   <Route path="edit/:id" element={<JournalistEdit />} />
                 </Route>
                 
-                {/* Routes Pays */}
+                {/* ====== Routes Pays ====== */}
                 <Route path="/countries">
                   <Route index element={<CountryList />} />
                   <Route path="create" element={<CountryCreate />} />

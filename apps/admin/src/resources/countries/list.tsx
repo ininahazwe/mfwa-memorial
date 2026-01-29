@@ -1,70 +1,128 @@
 // ============================================
-// LISTE DES PAYS
+// LISTE DES PAYS - VERSION AMÉLIORÉE
 // ============================================
-// Tableau avec nom, code ISO, coordonnées, niveau de risque
+// Table avec filtres, actions, styles light theme
+// Location: apps/admin/src/resources/countries/list.tsx
 
 import { 
   List, 
   useTable, 
   EditButton, 
   DeleteButton,
-  TagField,
+  CreateButton,
 } from '@refinedev/antd';
-import { Table, Space, Typography } from 'antd';
+import { Table, Space, Badge, Typography, Button, Popconfirm, message, Tag } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
+import { useDelete } from '@refinedev/core';
 
 const { Text } = Typography;
 
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
 // Couleurs par niveau de risque
-const riskColors: Record<string, string> = {
-  high: 'gold',
-  critical: 'orange',
-  extreme: 'red',
+const riskConfig: Record<string, { color: string; label: string; emoji: string }> = {
+  high: { color: 'gold', label: 'Élevé', emoji: '🟡' },
+  critical: { color: 'orange', label: 'Critique', emoji: '🟠' },
+  extreme: { color: 'red', label: 'Extrême', emoji: '🔴' },
 };
 
-// Labels en français
-const riskLabels: Record<string, string> = {
-  high: 'Élevé',
-  critical: 'Critique',
-  extreme: 'Extrême',
-};
+// ============================================
+// COMPOSANT
+// ============================================
 
 export const CountryList = () => {
-  const { tableProps } = useTable({
+  const { tableProps, filters } = useTable({
     syncWithLocation: true,
   });
 
+  const { mutate: deleteCountry } = useDelete();
+
+  // Gestion suppression avec confirmation
+  const handleDelete = (id: string, name: string) => {
+    deleteCountry(
+      { resource: 'countries', id },
+      {
+        onSuccess: () => {
+          message.success(`✅ ${name} a été supprimé`);
+        },
+        onError: (error: any) => {
+          message.error(`❌ Erreur : ${error?.message || 'Impossible de supprimer'}`);
+        },
+      }
+    );
+  };
+
   return (
-    <List>
-      <Table {...tableProps} rowKey="id">
+    <List
+      headerProps={{
+        extra: (
+          <Space>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {tableProps.dataSource?.length || 0} pays
+            </Text>
+            <CreateButton type="primary" />
+          </Space>
+        ),
+      }}
+    >
+      <Table 
+        {...tableProps} 
+        rowKey="id"
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Total : ${total} pays`,
+        }}
+      >
         
         {/* Nom du pays */}
         <Table.Column
           dataIndex="name"
           title="Pays"
-          render={(value) => <Text strong>{value}</Text>}
-          sorter
+          width={140}
+          render={(value) => (
+            <Text strong style={{ color: '#2a2a2a' }}>
+              {value}
+            </Text>
+          )}
+          sorter={(a: any, b: any) => (a.name || '').localeCompare(b.name || '')}
         />
         
         {/* Code ISO */}
         <Table.Column
           dataIndex="code"
           title="Code ISO"
-          width={100}
+          width={90}
           render={(value) => (
-            <Text code style={{ fontSize: 12 }}>{value}</Text>
+            <Tag 
+              style={{ 
+                backgroundColor: '#f5f5f0',
+                color: '#2a2a2a',
+                border: '1px solid #e8dcc8',
+                fontSize: 11,
+              }}
+            >
+              {value}
+            </Tag>
           )}
+          sorter={(a: any, b: any) => (a.code || '').localeCompare(b.code || '')}
         />
         
         {/* Coordonnées */}
         <Table.Column
           dataIndex="coords"
-          title="Coordonnées"
+          title="Position"
+          width={120}
           render={(value) => (
             value ? (
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text type="secondary" style={{ fontSize: 11 }}>
                 {value.lat.toFixed(2)}, {value.lng.toFixed(2)}
               </Text>
-            ) : '-'
+            ) : (
+              <Text type="danger">-</Text>
+            )
           )}
         />
         
@@ -73,12 +131,21 @@ export const CountryList = () => {
           dataIndex="riskLevel"
           title="Niveau de risque"
           width={140}
-          render={(value) => (
-            <TagField 
-              value={riskLabels[value] || value} 
-              color={riskColors[value] || 'default'} 
-            />
-          )}
+          render={(value) => {
+            const config = riskConfig[value] || { color: 'default', label: 'Inconnu', emoji: '❓' };
+            return (
+              <Badge
+                color={config.color}
+                text={<span style={{ fontSize: 12 }}>{config.emoji} {config.label}</span>}
+              />
+            );
+          }}
+          filters={[
+            { text: '🟡 Élevé', value: 'high' },
+            { text: '🟠 Critique', value: 'critical' },
+            { text: '🔴 Extrême', value: 'extreme' },
+          ]}
+          onFilter={(value, record: any) => record.riskLevel === value}
         />
         
         {/* Description (tronquée) */}
@@ -92,7 +159,7 @@ export const CountryList = () => {
               style={{ fontSize: 12 }}
               ellipsis={{ tooltip: value }}
             >
-              {value}
+              {value?.substring(0, 50)}...
             </Text>
           )}
         />
@@ -100,19 +167,33 @@ export const CountryList = () => {
         {/* Actions */}
         <Table.Column
           title="Actions"
-          width={120}
+          width={100}
+          fixed="right"
           render={(_, record: any) => (
-            <Space>
+            <Space size="small">
               <EditButton 
                 hideText 
                 size="small" 
-                recordItemId={record.id} 
-              />
-              <DeleteButton 
-                hideText 
-                size="small" 
                 recordItemId={record.id}
+                title="Modifier"
               />
+              
+              <Popconfirm
+                title="Supprimer ?"
+                description={`Êtes-vous sûr de vouloir supprimer ${record.name} ? Les journalistes associés ne seront pas supprimés.`}
+                okText="Oui, supprimer"
+                cancelText="Annuler"
+                okType="danger"
+                onConfirm={() => handleDelete(record.id, record.name)}
+              >
+                <Button 
+                  danger 
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  title="Supprimer"
+                />
+              </Popconfirm>
             </Space>
           )}
         />

@@ -1,46 +1,89 @@
 // ============================================
-// LISTE DES JOURNALISTES
+// LISTE DES JOURNALISTES - VERSION AMÉLIORÉE
 // ============================================
-// Tableau avec photo, nom, pays, rôle, année, statut
+// Table avec actions, statuts, styles light theme
+// Location: apps/admin/src/resources/journalists/list.tsx
 
 import { 
   List, 
   useTable, 
   EditButton, 
   DeleteButton,
-  TagField,
+  CreateButton,
 } from '@refinedev/antd';
-import { Table, Space, Image, Switch, Typography } from 'antd';
+import { Table, Space, Image, Badge, Typography, Button, Popconfirm, message } from 'antd';
+import { DeleteOutlined } from '@ant-design/icons';
+import { useDelete } from '@refinedev/core';
 
 const { Text } = Typography;
 
+// ============================================
+// COMPOSANT
+// ============================================
+
 export const JournalistList = () => {
   // Hook Refine pour la gestion du tableau
-  const { tableProps } = useTable({
+  const { tableProps, setFilters, filters } = useTable({
     syncWithLocation: true,
   });
 
+  const { mutate: deleteJournalist } = useDelete();
+
+  // Gestion suppression avec confirmation
+  const handleDelete = (id: string, name: string) => {
+    deleteJournalist(
+      { resource: 'journalists', id },
+      {
+        onSuccess: () => {
+          message.success(`✅ ${name} a été supprimé`);
+        },
+        onError: (error: any) => {
+          message.error(`❌ Erreur : ${error?.message || 'Impossible de supprimer'}`);
+        },
+      }
+    );
+  };
+
   return (
-    <List>
-      <Table {...tableProps} rowKey="id">
+    <List
+      headerProps={{
+        extra: (
+          <Space>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {tableProps.dataSource?.length || 0} journalistes
+            </Text>
+            <CreateButton type="primary" />
+          </Space>
+        ),
+      }}
+    >
+      <Table 
+        {...tableProps} 
+        rowKey="id"
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: true,
+          showTotal: (total) => `Total : ${total} journalistes`,
+        }}
+      >
         
         {/* Photo */}
         <Table.Column
           dataIndex="photoUrl"
           title="Photo"
-          width={80}
-          render={(value) => (
+          width={70}
+          render={(value, record: any) => (
             <Image
               src={value}
-              alt="Portrait"
+              alt={record.name}
               width={50}
               height={60}
               style={{ 
                 objectFit: 'cover', 
                 borderRadius: 4,
-                filter: 'grayscale(30%)',
+                border: '1px solid #e8dcc8',
               }}
-              fallback="https://via.placeholder.com/50x60?text=?"
+              fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6ZAAAASklEQVR42u3QMQEAAAiDMH+/6KFfWwAA4NkLrLiNiAACCCCCgEAAAsgAgEAAAsgAgEAAAsgAgEAAAsgAgEAAAsgAgEAA/QEEEQEAJQPBjQIGESkc0QAAAAASUVORK5CYII="
             />
           )}
         />
@@ -49,7 +92,12 @@ export const JournalistList = () => {
         <Table.Column
           dataIndex="name"
           title="Nom"
-          render={(value) => <Text strong>{value}</Text>}
+          width={150}
+          render={(value) => (
+            <Text strong style={{ color: '#2a2a2a' }}>
+              {value}
+            </Text>
+          )}
           sorter
         />
         
@@ -57,60 +105,100 @@ export const JournalistList = () => {
         <Table.Column
           dataIndex="countryName"
           title="Pays"
+          width={100}
           render={(value) => (
-            <TagField value={value} color="gold" />
+            <Badge 
+              color="#c4a77d"
+              text={<span style={{ color: '#666' }}>{value}</span>}
+            />
           )}
+          filters={tableProps.dataSource?.reduce((acc: any[], journalist: any) => {
+            const existing = acc.find(f => f.value === journalist.countryName);
+            if (!existing && journalist.countryName) {
+              acc.push({
+                text: journalist.countryName,
+                value: journalist.countryName,
+              });
+            }
+            return acc;
+          }, []) || []}
+          onFilter={(value, record: any) => record.countryName === value}
         />
         
         {/* Rôle */}
         <Table.Column
           dataIndex="role"
           title="Rôle"
-          render={(value) => <Text type="secondary">{value}</Text>}
+          width={150}
+          render={(value) => (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {value}
+            </Text>
+          )}
         />
         
-        {/* Année de disparition */}
+        {/* Année */}
         <Table.Column
           dataIndex="yearOfDeath"
           title="Année"
-          width={100}
-          render={(value) => <Text>†{value}</Text>}
-          sorter
+          width={80}
+          render={(value) => (
+            <Text strong style={{ color: '#c4a77d' }}>
+              † {value}
+            </Text>
+          )}
+          sorter={(a: any, b: any) => (a.yearOfDeath || 0) - (b.yearOfDeath || 0)}
         />
         
         {/* Statut de publication */}
         <Table.Column
           dataIndex="isPublished"
-          title="Publié"
-          width={80}
+          title="Statut"
+          width={100}
           render={(value) => (
-            <Switch 
-              checked={value} 
-              disabled 
-              size="small"
-              style={{ 
-                backgroundColor: value ? '#c4a77d' : undefined 
-              }}
+            <Badge
+              status={value ? 'success' : 'processing'}
+              text={value ? '✓ Publié' : '⊘ Brouillon'}
+              color={value ? '#52c41a' : '#d9d9d9'}
             />
           )}
+          filters={[
+            { text: 'Publié', value: true },
+            { text: 'Brouillon', value: false },
+          ]}
+          onFilter={(value, record: any) => record.isPublished === value}
         />
         
         {/* Actions */}
         <Table.Column
           title="Actions"
-          width={120}
+          width={100}
+          fixed="right"
           render={(_, record: any) => (
-            <Space>
+            <Space size="small">
               <EditButton 
                 hideText 
                 size="small" 
-                recordItemId={record.id} 
-              />
-              <DeleteButton 
-                hideText 
-                size="small" 
                 recordItemId={record.id}
+                title="Modifier"
               />
+              
+              <Popconfirm
+                title="Supprimer ?"
+                description={`Êtes-vous sûr de vouloir supprimer ${record.name} ? Cette action est irréversible.`}
+                okText="Oui, supprimer"
+                cancelText="Annuler"
+                okType="danger"
+                onConfirm={() => handleDelete(record.id, record.name)}
+              >
+                <Button 
+                  danger 
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  title="Supprimer"
+                />
+              </Popconfirm>
             </Space>
           )}
         />
