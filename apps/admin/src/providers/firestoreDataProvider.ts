@@ -196,7 +196,7 @@ export const firestoreDataProvider: DataProvider = {
     );
     
     return { 
-      data: ids.map((id) => ({ id })) 
+      data: ids.map((id) => ({ id })) as any[]
     };
   },
 

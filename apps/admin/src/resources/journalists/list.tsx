@@ -17,9 +17,6 @@ import { useDelete } from '@refinedev/core';
 
 import { db } from "../../lib/firebase"; // ou ton chemin
 import { collection, getDocs } from "firebase/firestore";
-import { useEffect } from 'react';
-
-
 
 const { Text } = Typography;
 
@@ -49,15 +46,6 @@ export const JournalistList = () => {
       }
     );
   };
-
-  useEffect(() => {
-  const testFirebase = async () => {
-    const querySnapshot = await getDocs(collection(db, "journalists"));
-    console.log("Nombre de documents trouvés en direct:", querySnapshot.size);
-    querySnapshot.forEach((doc) => console.log(doc.id, " => ", doc.data()));
-  };
-  testFirebase();
-}, []);
 
   return (
     <List
