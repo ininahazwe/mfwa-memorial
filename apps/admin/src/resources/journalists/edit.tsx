@@ -8,7 +8,7 @@ import { Edit, useForm, useSelect } from '@refinedev/antd';
 import { Form, Input, InputNumber, Select, Switch, Upload, Button, Image, message, Alert, Divider, Popconfirm } from 'antd';
 import { UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../../firebase';
+import { storage } from '../../lib/firebase';
 import { useState } from 'react';
 
 // ============================================

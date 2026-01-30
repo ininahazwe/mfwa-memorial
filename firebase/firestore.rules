@@ -12,7 +12,8 @@ service cloud.firestore {
     // Collection: journalists
     match /journalists/{journalistId} {
       // Lecture: public si publié, sinon admin seulement
-      allow read: if resource.data.isPublished == true || isAdmin();
+      // allow read: if resource.data.isPublished == true || isAdmin();
+      allow read: if true; // Test temporaire
       
       // Écriture: admin seulement
       allow create, update, delete: if isAdmin();

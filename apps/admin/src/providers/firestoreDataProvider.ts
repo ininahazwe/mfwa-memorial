@@ -17,7 +17,7 @@ import {
   orderBy,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../lib/firebase';
 
 // ============================================
 // HELPERS
@@ -74,22 +74,20 @@ export const firestoreDataProvider: DataProvider = {
   // GET LIST - Récupérer une liste
   // ----------------------------------------
   getList: async ({ resource }) => {
-    const q = query(
-      collection(db, resource), 
-      orderBy('createdAt', 'desc')
-    );
-    
-    const snapshot = await getDocs(q);
-    
-    const data = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...convertTimestamps(doc.data()),
-    }));
-    
-    return { 
-      data, 
-      total: data.length 
-    };
+      // Supprime le query() et le orderBy() pour le test
+      const snapshot = await getDocs(collection(db, resource));
+      
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...convertTimestamps(doc.data()),
+      }));
+      
+      console.log(`Données reçues pour ${resource}:`, data.length); // Vérifie ton log
+      
+      return { 
+        data, 
+        total: data.length 
+      };
   },
 
   // ----------------------------------------
